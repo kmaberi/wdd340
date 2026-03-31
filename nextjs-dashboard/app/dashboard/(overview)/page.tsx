@@ -3,16 +3,18 @@ import RevenueChart from '@/app/ui/dashboard/revenue-chart';
 import LatestInvoices from '@/app/ui/dashboard/latest-invoices';
 import { lusitana } from '@/app/ui/fonts';
 import { fetchLatestInvoices, fetchCardData, fetchRevenue } from '@/app/lib/data';
- 
+
+export const dynamic = 'force-dynamic';
+
 export default async function Page() {
-    const revenue = await fetchRevenue();
-    const latestInvoices = await fetchLatestInvoices();
-    const { 
-        numberOfCustomers,
-        numberOfInvoices,
-        totalPaidInvoices,
-        totalPendingInvoices
-     } = await fetchCardData();
+  const revenue = await fetchRevenue();
+  const latestInvoices = await fetchLatestInvoices();
+  const {
+    numberOfCustomers,
+    numberOfInvoices,
+    totalPaidInvoices,
+    totalPendingInvoices
+  } = await fetchCardData();
 
   return (
     <main>

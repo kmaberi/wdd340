@@ -21,9 +21,22 @@ const FormSchema = z.object({
   date: z.string(),
 });
 
-const CreateInvoice = FormSchema.omit({ id: true, date: true });
+type InvoiceActionState = {
+  message: string | null;
+  errors: {
+    customerId?: string[];
+    amount?: string[];
+    status?: string[];
+  };
+};
 
-export async function createInvoice(prevState: State, formData: FormData) {
+const CreateInvoice = FormSchema.omit({ id: true, date: true });
+const UpdateInvoice = FormSchema.omit({ id: true, date: true });
+
+export async function createInvoice(
+  prevState: InvoiceActionState,
+  formData: FormData,
+): Promise<InvoiceActionState> {
   const validatedFields = CreateInvoice.safeParse({
     customerId: formData.get('customerId'),
     amount: formData.get('amount'),
@@ -48,6 +61,7 @@ export async function createInvoice(prevState: State, formData: FormData) {
     `;
   } catch (error) {
     return {
+      errors: {},
       message: 'Database Error: Failed to Create Invoice.',
     };
   }
@@ -56,9 +70,11 @@ export async function createInvoice(prevState: State, formData: FormData) {
   redirect('/dashboard/invoices');
 }
 
-const UpdateInvoice = FormSchema.omit({ id: true, date: true });
-
-export async function updateInvoice(id: string, prevState: State, formData: FormData) {
+export async function updateInvoice(
+  id: string,
+  prevState: InvoiceActionState,
+  formData: FormData,
+): Promise<InvoiceActionState> {
   const validatedFields = UpdateInvoice.safeParse({
     customerId: formData.get('customerId'),
     amount: formData.get('amount'),
@@ -83,6 +99,7 @@ export async function updateInvoice(id: string, prevState: State, formData: Form
     `;
   } catch (error) {
     return {
+      errors: {},
       message: 'Database Error: Failed to Update Invoice.',
     };
   }
@@ -95,11 +112,9 @@ export async function deleteInvoice(id: string) {
   try {
     await sql`DELETE FROM invoices WHERE id = ${id}`;
     revalidatePath('/dashboard/invoices');
-    return { message: 'Deleted Invoice.' };
+    redirect('/dashboard/invoices');
   } catch (error) {
-    return {
-      message: 'Database Error: Failed to Delete Invoice.',
-    };
+    console.error('Database Error:', error);
   }
 }
 
