@@ -19,7 +19,7 @@ export default function SignUpPage() {
                             Create your account
                         </p>
                         <p className="mt-2 text-sm text-gray-500">
-                            Choose an option below to sign up with Google, GitHub, or email.
+                            Sign up using GitHub only.
                         </p>
                     </div>
 
