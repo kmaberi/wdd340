@@ -1,34 +1,26 @@
 import NextAuth from 'next-auth';
-import { authConfig } from './auth.config';
 import Credentials from 'next-auth/providers/credentials';
-import Google from 'next-auth/providers/google';
-import GitHub from 'next-auth/providers/github';
+import { authConfig } from './auth.config';
 import { z } from 'zod';
-import { sql } from '@vercel/postgres';
 import type { User } from '@/app/lib/definitions';
 import bcrypt from 'bcrypt';
+import postgres from 'postgres';
+
+const sql = postgres(process.env.POSTGRES_URL!, { ssl: 'require' });
 
 async function getUser(email: string): Promise<User | undefined> {
   try {
-    const user = await sql<User>`SELECT * FROM users WHERE email=${email}`;
-    return user.rows[0];
+    const user = await sql<User[]>`SELECT * FROM users WHERE email=${email}`;
+    return user[0];
   } catch (error) {
     console.error('Failed to fetch user:', error);
     throw new Error('Failed to fetch user.');
   }
 }
 
-export const { handlers, signIn, signOut, auth } = NextAuth({
+const handlers = NextAuth({
   ...authConfig,
   providers: [
-    Google({
-      clientId: process.env.GOOGLE_CLIENT_ID ?? '',
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? '',
-    }),
-    GitHub({
-      clientId: process.env.GITHUB_CLIENT_ID ?? '',
-      clientSecret: process.env.GITHUB_CLIENT_SECRET ?? '',
-    }),
     Credentials({
       async authorize(credentials) {
         const parsedCredentials = z
@@ -44,8 +36,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           if (passwordsMatch) return user;
         }
 
+        console.log('Invalid credentials');
         return null;
       },
     }),
   ],
 });
+
+export const { auth, signIn, signOut } = handlers;
+export { handlers };
